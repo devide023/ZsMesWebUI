@@ -62,7 +62,7 @@ const actions = {
         router.options.routes = user_route;
         commit('SET_MENUS', strmenus);
         commit('SET_USERINFO', response.user);
-        commit('SET_AVATAR',response.user.headimg);
+        commit('SET_AVATAR', response.user.headimg);
         resolve()
       }).catch(error => {
         reject(error)
