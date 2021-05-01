@@ -1,17 +1,14 @@
 import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken, setMenus } from '@/utils/auth'
-import { resetRouter } from '@/router';
+import { resetRouter, constantRoutes } from '@/router';
+import { get_user_menus } from '@/router/usermenu';
 import router from '@/router/index';
-import {get_userroutes} from '@/router/userroute';
 const getDefaultState = () => {
   return {
     token: getToken(),
-    name: '',
     avatar: '',
     menus: [],
-    orgid: 0,
-    userid: 0,
-    companyid: 0
+    userinfo: null
   }
 }
 
@@ -24,23 +21,14 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
-  SET_NAME: (state, name) => {
-    state.name = name
-  },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
   },
   SET_MENUS: (state, menus) => {
     state.menus = menus;
   },
-  SET_USERID: (state, userid) => {
-    state.userid = userid;
-  },
-  SET_ORGID: (state, orgid) => {
-    state.orgid = orgid;
-  },
-  SET_COMPANYID: (state, companyid) => {
-    state.companyid = companyid;
+  SET_USERINFO: (state, userinfo) => {
+    state.userinfo = userinfo;
   }
 }
 
@@ -63,23 +51,19 @@ const actions = {
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
+        console.log(response);
         if (!response) {
           return reject('Verification failed, please Login again.')
         }
         let strmenus = JSON.stringify(response.menulist);
-        //console.log(strmenus);
         setMenus(strmenus);
-        //setUserInfo(JSON.stringify(response.user));
+        let user_route = constantRoutes.concat(get_user_menus(response.menulist));
+        router.addRoutes(user_route);
+        router.options.routes = user_route;
         commit('SET_MENUS', strmenus);
-        commit('SET_NAME', response.user.name)
-        commit('SET_AVATAR', response.user.headimg)
-        commit('SET_COMPANYID', response.user.companyid)
-        commit('SET_ORGID', response.user.orgid)
-        commit('SET_USERID', response.user.id)
-        let routelist = get_userroutes(response.menulist)
-        router.addRoutes(routelist);
-        router.options.routes = routelist;
-        resolve(response.user)
+        commit('SET_USERINFO', response.user);
+        commit('SET_AVATAR',response.user.headimg);
+        resolve()
       }).catch(error => {
         reject(error)
       })
